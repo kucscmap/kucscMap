@@ -19,11 +19,11 @@ import { TilesProvider } from '../../providers'
 export class MapPage {
   @ViewChild('map') mapContainer: ElementRef;
   map: any;
-  readonly minZoom : number = 13;
-  readonly maxZoom : number = 15;
+  readonly minZoom: number = 13;
+  readonly maxZoom: number = 15;
 
 
-  constructor(platform: Platform, public navCtrl: NavController, public navParams: NavParams, tilesProvider: TilesProvider) {
+  constructor(platform: Platform, public navCtrl: NavController, public navParams: NavParams, public tilesProvider: TilesProvider) {
     platform.ready().then((readySource) => {
       console.log('Platform ready from ', readySource);
     });
@@ -34,7 +34,12 @@ export class MapPage {
     console.log('ionViewDidLoad MapPage');
     console.log('leaflet extended tile layer:', leaflet.TileLayer['MBTiles']);
     this.createMap();    //load map only after the view did load
-    this.addMapTileSource();
+
+    this.tilesProvider.getDatabaseState().subscribe(rdy => {
+      if (rdy) {
+        this.addMapTileSource();
+      }
+    })
   }
 
 
@@ -49,16 +54,28 @@ export class MapPage {
     this.map = leaflet.map('map', {
       attributionControl: true,
       minZoom: this.minZoom,
-      maxZoom: this.maxZoom, 
+      maxZoom: this.maxZoom,
       maxBounds: mapBounds
     }).fitBounds(initialMapPosition);
   }
 
-  addMapTileSource(){
-    leaflet.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: 'Patrik',
-      maxZoom: this.maxZoom
-    }).addTo(this.map);
+  addMapTileSource() {
+    
+    let offlineTileLayer = new leaflet.TileLayer['MBTiles'](
+      '',
+      {
+        tms: true,
+        maxZoom: this.maxZoom
+      }, 
+      this.tilesProvider.getDabase()
+    );
+
+    offlineTileLayer.addTo(this.map);
+    
+    // leaflet.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    //   attribution: 'Patrik',
+    //   maxZoom: this.maxZoom
+    // }).addTo(this.map);
   }
 
   test() {

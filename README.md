@@ -1,3 +1,9 @@
+# KU CSC Map application 🎮
+
+Map *csc-map* included in the root of the folder `www` is actually an MBTiles format.
+This file includes all the offline tiles. You can use application *SQLiteStudio* to browse and change its content.
+
+
 # The Ionic Super Starter 🎮
 
 <img src="https://user-images.githubusercontent.com/236501/32385619-bddac0ac-c08c-11e7-9ee4-9c892197191f.png" width="400" />

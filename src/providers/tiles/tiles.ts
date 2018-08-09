@@ -1,5 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs/Rx';
+import { Platform } from 'ionic-angular';
 import leaflet from 'leaflet';
 
 /*
@@ -13,10 +15,50 @@ export class TilesProvider {
 
   private readonly mapDbName : string = "csc-map";
   readonly base64Prefix : string = 'data:image/gif;base64,';
+  private databaseReady: BehaviorSubject<boolean>;
+  db: any;
+ 
 
-  constructor(public http: HttpClient) {
+  constructor(public http: HttpClient, private platform : Platform) {
     console.log('Hello TilesProvider Provider');
-    this.extendTileLayer();
+    let self = this;
+    self.databaseReady = new BehaviorSubject(false);
+    self.extendTileLayer();
+
+    self.platform.ready().then(() => {
+      if ((<any>window).SQLitePlugin && (<any>window).plugins.sqlDB) {
+        console.log('has sqlitePlugin-ext and dbCopy(sqlDB)');
+        let copysuccess = function () {
+          console.log('&quot;copy success&quot;');    
+          //self.buildMap();
+          self.openDatabase();
+        };
+
+        let copyerror = function (e) {
+          //db already exists or problem in copying the db file. Check the Log.
+          console.log('&quot;Error Code = &quot;' + JSON.stringify(e));
+          //e.code = 516 =&amp;amp;gt; if db exists
+          if (e.code == 516) {
+            console.log('removing existent database file..new copy');
+            (<any>window).plugins.sqlDB.remove(this.mapDbName, 0, removesuccess, removeerror);
+          }
+        }.bind(this);
+
+        //either use self in functions which may be call from diffeent context
+        //or ".bind(this)" at the end of function declaration
+        let removesuccess = function () {
+          console.log('&quot;remove success&quot;');
+          (<any>window).plugins.sqlDB.copy(self.mapDbName, 0, copysuccess, copyerror);
+        };
+
+        let removeerror = function () {
+          console.log('&quot;remove error&quot;');
+        };
+
+        (<any>window).plugins.sqlDB.copy(this.mapDbName, 0, copysuccess, copyerror);
+      }
+    });
+   
   }
 
   extendTileLayer(){
@@ -80,5 +122,35 @@ export class TilesProvider {
 
     console.log("tiles extended");
     console.log("extended layer after extension", leaflet.TileLayer['MBTiles'])
+  }
+
+  getDatabaseState() {
+    return this.databaseReady.asObservable();
+  }
+
+  getDabase(){
+    return this.db;
+  }
+
+  openDatabase(){
+    let self = this;
+    let dbOptions: any;
+
+    if (self.platform.is('android')) {
+      dbOptions = { name: self.mapDbName, location: 'default' };
+    }
+    else {
+      dbOptions = { name: self.mapDbName, iosDatabaseLocation: 'Documents' };
+    }
+
+    self.db = (<any>window).sqlitePlugin.openDatabase(dbOptions);
+
+    if(self.db){
+      console.log("database is open");
+      self.databaseReady.next(true);
+    }else{
+      console.log("Database failed to open");
+    }
+
   }
 }
