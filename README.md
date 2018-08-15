@@ -1,8 +1,9 @@
 # KU CSC Map application 🎮
 
-Map *csc-map* included in the root of the folder `www` is actually an MBTiles format.
+Map **csc-map** included in the root of the folder `www` is actually an MBTiles format.
 This file includes all the offline tiles. You can use application *SQLiteStudio* to browse and change its content.
 
+For iOS the plugin **Geoloation** need to be also added into *configuration.xml*
 
 # The Ionic Super Starter 🎮
 

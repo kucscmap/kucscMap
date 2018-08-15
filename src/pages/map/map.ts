@@ -2,7 +2,7 @@ import { Component, ViewChild, ElementRef } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { Platform } from 'ionic-angular';
 import leaflet, { LatLng, LatLngBounds } from 'leaflet';
-import { TilesProvider } from '../../providers'
+import { TilesProvider, LocationProvider } from '../../providers'
 
 /**
  * Generated class for the MapPage page.
@@ -16,14 +16,27 @@ import { TilesProvider } from '../../providers'
   selector: 'page-map',
   templateUrl: 'map.html',
 })
+
 export class MapPage {
   @ViewChild('map') mapContainer: ElementRef;
-  map: any;
+  map: leaflet.Map;
   readonly minZoom: number = 13;
   readonly maxZoom: number = 15;
+  readonly initialPosition = { lat: 17.2884, long: 104.1113 };
 
 
-  constructor(platform: Platform, public navCtrl: NavController, public navParams: NavParams, public tilesProvider: TilesProvider) {
+  public lat: number = null;
+  public long: number = null;
+  public accuracy: number = null;
+  public compassMagneticHeading: number = null;
+
+  public positionMarker: leaflet.CircleMarker = null;
+
+  constructor(platform: Platform,
+    public navCtrl: NavController,
+    public navParams: NavParams,
+    public tilesProvider: TilesProvider,
+    public locationProvider: LocationProvider) {
     platform.ready().then((readySource) => {
       console.log('Platform ready from ', readySource);
     });
@@ -34,12 +47,15 @@ export class MapPage {
     console.log('ionViewDidLoad MapPage');
     console.log('leaflet extended tile layer:', leaflet.TileLayer['MBTiles']);
     this.createMap();    //load map only after the view did load
+    this.createPositionMarker();
 
     this.tilesProvider.getDatabaseState().subscribe(rdy => {
       if (rdy) {
         this.addMapTileSource();
       }
     })
+
+    this.subscribeToLocationData();
   }
 
 
@@ -60,22 +76,65 @@ export class MapPage {
   }
 
   addMapTileSource() {
-    
+
     let offlineTileLayer = new leaflet.TileLayer['MBTiles'](
       '',
       {
         tms: true,
         maxZoom: this.maxZoom
-      }, 
+      },
       this.tilesProvider.getDabase()
     );
 
     offlineTileLayer.addTo(this.map);
-    
+
     // leaflet.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     //   attribution: 'Patrik',
     //   maxZoom: this.maxZoom
     // }).addTo(this.map);
+  }
+
+
+  subscribeToLocationData() {
+    console.log("subscribing to location data");
+    this.locationProvider.gpsReady.subscribe(() => {
+      console.log(`GPS ready;
+       latlong = [${this.locationProvider.lat}, ${this.locationProvider.long}];
+       acc = ${this.locationProvider.accuracy}`)
+
+      this.lat = this.locationProvider.lat;
+      this.long = this.locationProvider.long;
+      this.accuracy = this.locationProvider.accuracy;
+
+
+      if (this.lat && this.long) {
+        //maybe it would be better to update this position periodically, e.g.30 fps
+        this.updatePositionMarker(this.lat, this.long);
+      }
+    });
+
+    this.locationProvider.compassReady.subscribe(() => {
+      // console.log(`Compass ready;
+      // magnetic heading = ${this.locationProvider.compassMagneticHeading}`);
+
+      this.compassMagneticHeading = this.locationProvider.compassMagneticHeading;
+    })
+  }
+
+  private createPositionMarker() {
+    this.positionMarker = leaflet.circleMarker(new leaflet.LatLng(this.initialPosition.lat, this.initialPosition.long));
+    this.positionMarker.addTo(this.map);
+  }
+
+  private updatePositionMarker(lat: number, long: number) {
+    //maybe here we can filter out big accidental jumps in location
+
+    console.log("market latlong before:", JSON.stringify(this.positionMarker.getLatLng()));
+
+    console.log("setting marker to:" + lat + ", " + long);
+    this.positionMarker.setLatLng(leaflet.latLng(lat, long));
+    console.log("market latlong before:", JSON.stringify(this.positionMarker.getLatLng()));
+
   }
 
   test() {

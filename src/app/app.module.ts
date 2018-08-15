@@ -14,6 +14,8 @@ import { Settings, User, Api } from '../providers';
 import { MyApp } from './app.component';
 import { TilesProvider } from '../providers/tiles/tiles';
 import { LocationProvider } from '../providers/location/location';
+import { Geolocation } from '../../node_modules/@ionic-native/geolocation';
+import { DeviceOrientation } from '../../node_modules/@ionic-native/device-orientation';
 
 // The translate loader needs to know where to load i18n files
 // in Ionic's static asset pipeline.
@@ -68,6 +70,8 @@ export function provideSettings(storage: Storage) {
     // Keep this to enable Ionic's runtime error handling during development
     { provide: ErrorHandler, useClass: IonicErrorHandler },
     TilesProvider,
+    Geolocation,
+    DeviceOrientation,
     LocationProvider
   ]
 })

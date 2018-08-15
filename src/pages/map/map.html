@@ -14,5 +14,19 @@
 
 
 <ion-content>
+  <div>
+      <p>Showing geolocation info here</p>
+      <ul>
+        <li>LAT: {{lat}}</li>
+        <li>LONG: {{long}}</li>
+        <li>ACCURACY: {{accuracy}} meters</li>
+      </ul>
+    
+      <p>Showing compass info here</p>
+      <ul>
+        <li>MAGNETIC HEADING: {{compassMagneticHeading}}</li>
+      </ul>
+  </div>
+   
   <div id="map"></div>
 </ion-content>
