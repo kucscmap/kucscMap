@@ -1,8 +1,9 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import { Platform } from 'ionic-angular';
-import leaflet, { LatLng, LatLngBounds } from 'leaflet';
+import * as L from 'leaflet';
 import { TilesProvider, LocationProvider } from '../../providers'
+import 'leaflet-rotatedmarker';
 
 /**
  * Generated class for the MapPage page.
@@ -19,7 +20,7 @@ import { TilesProvider, LocationProvider } from '../../providers'
 
 export class MapPage {
   @ViewChild('map') mapContainer: ElementRef;
-  map: leaflet.Map;
+  map: L.Map;
   readonly minZoom: number = 13;
   readonly maxZoom: number = 15;
   readonly initialPosition = { lat: 17.2884, long: 104.1113 };
@@ -30,7 +31,7 @@ export class MapPage {
   public accuracy: number = null;
   public compassMagneticHeading: number = null;
 
-  public positionMarker: leaflet.CircleMarker = null;
+  public positionMarker: L.Marker = null;
 
   constructor(platform: Platform,
     public navCtrl: NavController,
@@ -45,7 +46,7 @@ export class MapPage {
   ionViewDidLoad() {
     //good place for initializing first time the view/page loades
     console.log('ionViewDidLoad MapPage');
-    console.log('leaflet extended tile layer:', leaflet.TileLayer['MBTiles']);
+    console.log('leaflet extended tile layer:', L.TileLayer['MBTiles']);
     this.createMap();    //load map only after the view did load
     this.createPositionMarker();
 
@@ -60,14 +61,14 @@ export class MapPage {
 
 
   createMap() {
-    const boundSW: LatLng = new leaflet.LatLng(17.2550, 104.067);
-    const boundNE: LatLng = new leaflet.LatLng(17.3230, 104.178);
-    const mapBounds: LatLngBounds = new leaflet.LatLngBounds(boundSW, boundNE);
-    const initialMapPosition: LatLngBounds = new leaflet.LatLngBounds(
-      new leaflet.LatLng(17.2788, 104.095), //southWest
-      new leaflet.LatLng(17.3027, 104.1204)); //northEast
+    const boundSW: L.LatLng = new L.LatLng(17.2550, 104.067);
+    const boundNE: L.LatLng = new L.LatLng(17.3230, 104.178);
+    const mapBounds: L.LatLngBounds = new L.LatLngBounds(boundSW, boundNE);
+    const initialMapPosition: L.LatLngBounds = new L.LatLngBounds(
+      new L.LatLng(17.2788, 104.095), //southWest
+      new L.LatLng(17.3027, 104.1204)); //northEast
 
-    this.map = leaflet.map('map', {
+    this.map = L.map('map', {
       attributionControl: true,
       minZoom: this.minZoom,
       maxZoom: this.maxZoom,
@@ -77,7 +78,7 @@ export class MapPage {
 
   addMapTileSource() {
 
-    let offlineTileLayer = new leaflet.TileLayer['MBTiles'](
+    let offlineTileLayer = new L.TileLayer['MBTiles'](
       '',
       {
         tms: true,
@@ -109,7 +110,7 @@ export class MapPage {
 
       if (this.lat && this.long) {
         //maybe it would be better to update this position periodically, e.g.30 fps
-        this.updatePositionMarker(this.lat, this.long);
+        this.updatePositionMarkerLocation(this.lat, this.long);
       }
     });
 
@@ -118,29 +119,53 @@ export class MapPage {
       // magnetic heading = ${this.locationProvider.compassMagneticHeading}`);
 
       this.compassMagneticHeading = this.locationProvider.compassMagneticHeading;
+
+      if(this.compassMagneticHeading){
+        this.updatePositionMarkerHeading(this.compassMagneticHeading);
+      }
     })
   }
 
   private createPositionMarker() {
-    this.positionMarker = leaflet.circleMarker(new leaflet.LatLng(this.initialPosition.lat, this.initialPosition.long));
+    //this.positionMarker = L.circleMarker(new L.LatLng(this.initialPosition.lat, this.initialPosition.long));
+    this.positionMarker = new L.Marker(new L.LatLng(this.initialPosition.lat, this.initialPosition.long), {
+      rotationAngle: 0,
+      rotationOrigin: 'center center',
+      icon: L.icon({
+        iconUrl: 'assets/icon/nav.svg',
+        iconSize: [25, 25], // size of the icon
+      //  iconAnchor: [22, 94], // point of the icon which will correspond to marker's location
+      // popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+      }),
+    });
     this.positionMarker.addTo(this.map);
   }
 
-  private updatePositionMarker(lat: number, long: number) {
+  private updatePositionMarkerLocation(lat: number, long: number) {
     //maybe here we can filter out big accidental jumps in location
 
     console.log("market latlong before:", JSON.stringify(this.positionMarker.getLatLng()));
 
     console.log("setting marker to:" + lat + ", " + long);
-    this.positionMarker.setLatLng(leaflet.latLng(lat, long));
+    this.positionMarker.setLatLng(L.latLng(lat, long));
     console.log("market latlong before:", JSON.stringify(this.positionMarker.getLatLng()));
 
   }
 
+  private updatePositionMarkerHeading(heading: number) {
+    //maybe here we can filter out0  compass accuracy problems
+
+    if(heading >= 0 && heading <= 360){
+      this.positionMarker.setRotationAngle(Math.round(heading));
+      console.log("heading set to:", Math.round(heading));
+    }
+  }
+
+
   test() {
     //load map only after the view did load
-    this.map = leaflet.map("map", { center: new leaflet.LatLng(38.9013, -77.036), zoom: 10 });
-    leaflet.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    this.map = L.map("map", { center: new L.LatLng(38.9013, -77.036), zoom: 10 });
+    L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: 'Patrik',
       maxZoom: 18
     }).addTo(this.map);
