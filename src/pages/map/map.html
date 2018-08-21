@@ -29,4 +29,16 @@
   </div>
    
   <div id="map"></div>
+
+  <ion-fab right bottom>
+    <button ion-fab color="light"><ion-icon name="arrow-dropleft"></ion-icon></button>
+    <ion-fab-list side="left">
+      <button ion-fab menuToggle><ion-icon name="menu"></ion-icon></button>
+      <button ion-fab (click)="switchTracking()"  [ngClass]="{'button-enabled' : isTracking}"><ion-icon name="locate"></ion-icon></button>
+      <button ion-fab (click)="switchAccuracy()" [ngClass]="{'button-enabled' : isAccuracy}"><ion-icon name="radio-button-on"></ion-icon></button>
+    </ion-fab-list>
+  </ion-fab>
+
+
+
 </ion-content>

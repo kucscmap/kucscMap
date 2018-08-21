@@ -4,6 +4,7 @@ import { Platform } from 'ionic-angular';
 import * as L from 'leaflet';
 import { TilesProvider, LocationProvider } from '../../providers'
 import 'leaflet-rotatedmarker';
+import { ThrowStmt } from '../../../node_modules/@angular/compiler';
 
 /**
  * Generated class for the MapPage page.
@@ -11,6 +12,11 @@ import 'leaflet-rotatedmarker';
  * See https://ionicframework.com/docs/components/#navigation for more info on
  * Ionic pages and navigation.
  */
+
+enum PositionMarkerIconUrl  {
+  Full = 'assets/icon/nav_full.svg',
+  Empty = 'assets/icon/nav_empty.svg'
+}
 
 @IonicPage()
 @Component({
@@ -22,16 +28,22 @@ export class MapPage {
   @ViewChild('map') mapContainer: ElementRef;
   map: L.Map;
   readonly minZoom: number = 13;
-  readonly maxZoom: number = 15;
+  readonly maxZoom: number = 20;
   readonly initialPosition = { lat: 17.2884, long: 104.1113 };
 
+  public isTracking: boolean = false;
+  public isAccuracy: boolean = false;
 
-  public lat: number = null;
-  public long: number = null;
-  public accuracy: number = null;
-  public compassMagneticHeading: number = null;
+
+  public lat: number = this.initialPosition.lat;
+  public long: number = this.initialPosition.long;
+  public accuracy: number = 0;
+  public compassMagneticHeading: number = 0;
 
   public positionMarker: L.Marker = null;
+  public accuracyMarker: L.Circle = null;
+
+
 
   constructor(platform: Platform,
     public navCtrl: NavController,
@@ -49,6 +61,7 @@ export class MapPage {
     console.log('leaflet extended tile layer:', L.TileLayer['MBTiles']);
     this.createMap();    //load map only after the view did load
     this.createPositionMarker();
+    this.createAccuracyMarker();
 
     this.tilesProvider.getDatabaseState().subscribe(rdy => {
       if (rdy) {
@@ -107,11 +120,21 @@ export class MapPage {
       this.long = this.locationProvider.long;
       this.accuracy = this.locationProvider.accuracy;
 
-
-      if (this.lat && this.long) {
-        //maybe it would be better to update this position periodically, e.g.30 fps
-        this.updatePositionMarkerLocation(this.lat, this.long);
+      if(!this.lat || !this.long || !this.accuracy){
+        return;
       }
+
+      this.updatePositionMarkerLocation(this.lat, this.long);
+      
+      if (this.isTracking) {
+        this.trackLocation();
+      }
+
+      if(this.isAccuracy){
+        this.updateAccuracyMarkerLocation(this.lat, this.long);
+        this.updateAccuracyMarkerRadius(this.accuracy);
+      }
+
     });
 
     this.locationProvider.compassReady.subscribe(() => {
@@ -120,9 +143,11 @@ export class MapPage {
 
       this.compassMagneticHeading = this.locationProvider.compassMagneticHeading;
 
-      if(this.compassMagneticHeading){
-        this.updatePositionMarkerHeading(this.compassMagneticHeading);
+      if (!this.compassMagneticHeading) {
+        return;
       }
+
+      this.updatePositionMarkerHeading(this.compassMagneticHeading);
     })
   }
 
@@ -131,34 +156,72 @@ export class MapPage {
     this.positionMarker = new L.Marker(new L.LatLng(this.initialPosition.lat, this.initialPosition.long), {
       rotationAngle: 0,
       rotationOrigin: 'center center',
-      icon: L.icon({
-        iconUrl: 'assets/icon/nav.svg',
-        iconSize: [25, 25], // size of the icon
-      //  iconAnchor: [22, 94], // point of the icon which will correspond to marker's location
-      // popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
-      }),
     });
+
+    this.changePositionMarkerIcon(PositionMarkerIconUrl.Full);
     this.positionMarker.addTo(this.map);
   }
 
   private updatePositionMarkerLocation(lat: number, long: number) {
     //maybe here we can filter out big accidental jumps in location
-
-    console.log("market latlong before:", JSON.stringify(this.positionMarker.getLatLng()));
-
-    console.log("setting marker to:" + lat + ", " + long);
     this.positionMarker.setLatLng(L.latLng(lat, long));
-    console.log("market latlong before:", JSON.stringify(this.positionMarker.getLatLng()));
+  }
 
+  private changePositionMarkerIcon(iconUrl : PositionMarkerIconUrl){
+    this.positionMarker.setIcon(L.icon({
+      iconUrl: iconUrl,
+      iconSize: [20, 20],
+    }));
   }
 
   private updatePositionMarkerHeading(heading: number) {
     //maybe here we can filter out0  compass accuracy problems
 
-    if(heading >= 0 && heading <= 360){
+    if (heading >= 0 && heading <= 360) {
       this.positionMarker.setRotationAngle(Math.round(heading));
-      console.log("heading set to:", Math.round(heading));
     }
+  }
+
+  switchTracking() {
+    this.isTracking = !this.isTracking;
+    console.log("isTracking:", this.isTracking);
+  }
+
+  private trackLocation() {
+    this.map.panTo(L.latLng(this.lat, this.long));
+  }
+
+
+  private createAccuracyMarker() {
+    this.accuracyMarker = L.circle(new L.LatLng(this.initialPosition.lat, this.initialPosition.long), {
+      stroke: true,
+      weight: 2,
+      color: '#c20404',
+      fillColor: '#f03',
+      fillOpacity: 0.2
+    })
+  }
+
+  switchAccuracy() {
+    this.isAccuracy = !this.isAccuracy;
+    console.log("isTracking:", this.isTracking);
+    if(this.isAccuracy){
+      this.accuracyMarker.addTo(this.map);
+      this.changePositionMarkerIcon(PositionMarkerIconUrl.Empty);
+    }else{
+      this.accuracyMarker.removeFrom(this.map);
+      this.changePositionMarkerIcon(PositionMarkerIconUrl.Full);
+    }
+  }
+
+  private updateAccuracyMarkerRadius(accuracy : number) {
+    // accuracy radius is half of the accuracy from sensor
+    this.accuracyMarker.setRadius(Math.round(accuracy / 2));
+  }
+
+  private updateAccuracyMarkerLocation(lat: number, long: number) {
+    //maybe here we can filter out big accidental jumps in location
+    this.accuracyMarker.setLatLng(L.latLng(lat, long));
   }
 
 

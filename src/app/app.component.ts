@@ -18,6 +18,7 @@ import { Settings } from '../providers';
     <ion-content>
       <ion-list>
         <button menuClose ion-item *ngFor="let p of pages" (click)="openPage(p)">
+          <ion-icon [name]="p.icon" *ngIf="p.icon" ></ion-icon>
           {{p.title}}
         </button>
       </ion-list>
@@ -41,9 +42,9 @@ export class MyApp {
     { title: 'Signup', component: 'SignupPage' },
     { title: 'Master Detail', component: 'ListMasterPage' },
     { title: 'Menu', component: 'MenuPage' },
-    { title: 'Settings', component: 'SettingsPage' },
+    { title: 'Settings', component: 'SettingsPage', icon: 'options' },
     { title: 'Search', component: 'SearchPage' },
-    { title: 'Map', component: 'MapPage'}
+    { title: 'Map', component: 'MapPage', icon: 'map' }
   ]
 
   constructor(private translate: TranslateService, platform: Platform, settings: Settings, private config: Config, private statusBar: StatusBar, private splashScreen: SplashScreen) {

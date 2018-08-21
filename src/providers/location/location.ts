@@ -41,6 +41,7 @@ export class LocationProvider {
   watchGeo : any = this.geolocation.watchPosition(this.geolocatioOptions)
   .filter((p) => p.coords !== undefined) //Filter Out Errors
   .subscribe(position => {
+
     this.time = position.timestamp;
     this.lat = position.coords.latitude;
     this.long = position.coords.longitude;
@@ -49,18 +50,18 @@ export class LocationProvider {
     this.speed = position.coords.speed;
   
     this.gpsReady.next(true);
-   // console.log(position.coords.longitude + ' ' + position.coords.latitude);
+
   });
   
   
   watchCompass : any =  this.deviceOrientation.watchHeading()
+  .filter((d) => d.magneticHeading !== undefined)
   .subscribe(
     (data: DeviceOrientationCompassHeading) => {
       this.compassMagneticHeading = data.magneticHeading;
       this.compassTime = data.timestamp;
 
       this.compassReady.next(true);
-     // console.log(data);
     }
   );
 

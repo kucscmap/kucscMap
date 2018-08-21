@@ -4,6 +4,7 @@ import { IonicPage, Nav, NavController } from 'ionic-angular';
 interface PageItem {
   title: string
   component: any
+  icon?: string 
 }
 type PageList = PageItem[]
 
