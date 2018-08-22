@@ -87,7 +87,11 @@ export class MapPage {
       maxZoom: this.maxZoom,
       maxBounds: mapBounds
     }).fitBounds(initialMapPosition);
+
+    L.control.scale().addTo(this.map);
+
   }
+
 
   addMapTileSource() {
 
