@@ -14,8 +14,8 @@ import { Settings, User, Api } from '../providers';
 import { MyApp } from './app.component';
 import { TilesProvider } from '../providers/tiles/tiles';
 import { LocationProvider } from '../providers/location/location';
-import { Geolocation } from '../../node_modules/@ionic-native/geolocation';
-import { DeviceOrientation } from '../../node_modules/@ionic-native/device-orientation';
+import { Geolocation } from '@ionic-native/geolocation';
+import { DeviceOrientation } from '@ionic-native/device-orientation';
 import { DataProvider } from '../providers/data/data';
 
 // The translate loader needs to know where to load i18n files

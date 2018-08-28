@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { IonicPageModule } from 'ionic-angular';
 import {TranslateModule} from '@ngx-translate/core';
 import { MapPage } from './map';
-import { core } from '../../../node_modules/@angular/compiler';
+import { core } from '@angular/compiler';
 
 @NgModule({
   declarations: [

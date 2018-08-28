@@ -1,0 +1,38 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>{{ item.name }}</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content>
+  <ion-card>
+    <ion-item>
+      <h2>{{item.number}}</h2>
+      <p>{{item.name}}</p>
+    </ion-item>
+
+    <img [src]="item.getTitlePicture()" (error)="img.src = replacePicture()" #img>
+
+    <ion-card-content>
+      <p>{{item.about}}</p>
+    </ion-card-content>
+
+    <ion-row>
+      <ion-col>
+        <button ion-button color="primary" clear small icon-start>
+          <ion-icon name='heart'></ion-icon>
+          Favourite
+        </button>
+      </ion-col>
+      <ion-col>
+        <button ion-button color="primary" clear small icon-start>
+          <ion-icon name='text'></ion-icon>
+          Comment
+        </button>
+      </ion-col>
+    </ion-row>
+  </ion-card>
+</ion-content>
