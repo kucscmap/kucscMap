@@ -8,4 +8,22 @@ page-map {
         background-color: map-get($colors, enabled);
         color: #fff;
     }
+
+    .popup-content-div{
+        font-size: 120%;
+    }
+
+    .popup-content-div label {
+        font-size: 1.2em;
+        font-weight: bold
+    }
+
+    .popup-content-div button {
+        font-size: 1.0em;
+        text-align: center;
+        padding:0.2em;
+        width: 100%;
+        border-radius: 0.1em;
+    }
+
 }

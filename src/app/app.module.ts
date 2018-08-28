@@ -16,6 +16,7 @@ import { TilesProvider } from '../providers/tiles/tiles';
 import { LocationProvider } from '../providers/location/location';
 import { Geolocation } from '../../node_modules/@ionic-native/geolocation';
 import { DeviceOrientation } from '../../node_modules/@ionic-native/device-orientation';
+import { DataProvider } from '../providers/data/data';
 
 // The translate loader needs to know where to load i18n files
 // in Ionic's static asset pipeline.
@@ -72,7 +73,8 @@ export function provideSettings(storage: Storage) {
     TilesProvider,
     Geolocation,
     DeviceOrientation,
-    LocationProvider
+    LocationProvider,
+    DataProvider
   ]
 })
 export class AppModule { }

@@ -29,6 +29,24 @@ export class Api {
     return this.http.get(this.url + '/' + endpoint, reqOpts);
   }
 
+  getLocal(endpoint: string, params?: any, reqOpts?: any) {
+    if (!reqOpts) {
+      reqOpts = {
+        params: new HttpParams()
+      };
+    }
+
+    // Support easy query params for GET requests
+    if (params) {
+      reqOpts.params = new HttpParams();
+      for (let k in params) {
+        reqOpts.params = reqOpts.params.set(k, params[k]);
+      }
+    }
+
+    return this.http.get(endpoint, reqOpts);
+  }
+
   post(endpoint: string, body: any, reqOpts?: any) {
     return this.http.post(this.url + '/' + endpoint, body, reqOpts);
   }
