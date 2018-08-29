@@ -27,8 +27,12 @@ export class MapPage {
   @ViewChild('map') mapContainer: ElementRef;
   map: L.Map;
   readonly minZoom: number = 13;
-  readonly maxZoom: number = 20;
+  readonly maxZoom: number = 19;
   readonly initialPosition = { lat: 17.2884, long: 104.1113 };
+  readonly zIndex = {
+    low: -10000000,
+    high: 10000000
+  }
 
   public isTracking: boolean = false;
   public isAccuracy: boolean = false;
@@ -82,10 +86,15 @@ export class MapPage {
         onEachFeature: (feature, layer) => {
             let popupContent = this.createUniversityBuildingsPopupContent(feature, self);         
             layer.bindPopup(popupContent);
-        }
+        },
+        style: (geoJsonFeature) => {
+          return {opacity:0};  //a transparent layer just for registering click events, layer already baked to map in form of a shappefile
+        }    
       });
-      console.log("Geo:", geo);
+      geo.setZIndex(this.zIndex.high); // on top of everything, so it can register clicks
       geo.addTo(this.map);
+     
+      console.log("Geo:", geo);
     });
   }
 
@@ -205,9 +214,10 @@ export class MapPage {
     this.positionMarker = new L.Marker(new L.LatLng(this.lat, this.long), {
       rotationAngle: 0,
       rotationOrigin: 'center center',
-    });
+    })
 
     this.changePositionMarkerIcon(PositionMarkerIconUrl.Full);
+    this.positionMarker.setZIndexOffset(this.zIndex.low);
     this.positionMarker.addTo(this.map);
   }
 
@@ -256,6 +266,7 @@ export class MapPage {
     console.log("isAccuracy:", this.isTracking);
     if (this.isAccuracy) {
       this.accuracyMarker.addTo(this.map);
+      this.accuracyMarker.bringToBack();
       this.changePositionMarkerIcon(PositionMarkerIconUrl.Empty);
     } else {
       this.accuracyMarker.removeFrom(this.map);
