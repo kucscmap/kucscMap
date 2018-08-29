@@ -10,8 +10,10 @@
 <ion-content>
   <ion-card>
     <ion-item text-wrap>
-      <h2>{{item.number}}</h2>
-      <p>{{item.name}}</p>
+      <ion-icon name="school" item-start large></ion-icon>
+      <h2>{{item.getHeading()}}</h2>
+      <p>{{item.address}}</p>
+      <ion-note> {{distance}} meters</ion-note>
     </ion-item>
 
     <img [src]="item.getTitlePicture()" (error)="img.src = replacePicture()" #img>
@@ -19,7 +21,7 @@
     <ion-card-content>
       <p>{{item.about}}</p>
     </ion-card-content>
-
+ 
     <ion-row>
       <ion-col>
         <button ion-button color="primary" clear small icon-start>

@@ -65,10 +65,4 @@ export class LocationProvider {
     }
   );
 
-  calculateDistance(lat: number, long : number) : number{
-      //should calculate air distance from user latlong to the provided latlong
-
-    return 0;
-  }
-
 }

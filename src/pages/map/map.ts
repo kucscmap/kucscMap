@@ -40,8 +40,16 @@ export class MapPage {
 
   public lat: number = this.initialPosition.lat;
   public long: number = this.initialPosition.long;
+  public speed: number = 0;
   public accuracy: number = 0;
   public compassMagneticHeading: number = 0;
+
+  public selectedPoi = {
+    feature: null,
+    distance : Infinity,
+    duration : Infinity
+  };
+  
 
   public positionMarker: L.Marker = null;
   public accuracyMarker: L.Circle = null;
@@ -53,7 +61,7 @@ export class MapPage {
     public navParams: NavParams,
     public tilesProvider: TilesProvider,
     public locationProvider: LocationProvider,
-    public dataProvider : DataProvider) {
+    public dataProvider: DataProvider) {
 
     platform.ready().then((readySource) => {
       console.log('Platform ready from ', readySource);
@@ -75,49 +83,73 @@ export class MapPage {
     this.subscribeToLocationData();
   }
 
-  private loadUniversityBuildingsData(){
+  private loadUniversityBuildingsData() {
     console.log("getting universityBuilding data");
     this.dataProvider.getJsonAsync(DATA_SOURCE.BuildingsUniversity).subscribe(data => {
       console.log("data received", data);
-      this.universityBuildings = data; 
-      
+      this.universityBuildings = data;
+
       let self = this;
-      let geo = L.geoJSON(this.universityBuildings,{
-        onEachFeature: (feature, layer) => {
-            let popupContent = this.createUniversityBuildingsPopupContent(feature, self);         
-            layer.bindPopup(popupContent);
+      let geo = L.geoJSON(this.universityBuildings, {
+        onEachFeature: (feature, layer) => {        
+          let popup = new L.Popup();       
+          layer.bindPopup(popup);
+          layer.on("click",() => {
+            this.selectPoi(feature);
+            this.updateSelectedPoiInfo();
+            popup.setContent(this.createUniversityBuildingsPopupContent());
+          })
         },
         style: (geoJsonFeature) => {
-          return {opacity:0};  //a transparent layer just for registering click events, layer already baked to map in form of a shappefile
-        }    
+          return { opacity: 0 };  //a transparent layer just for registering click events, layer already baked to map in form of a shappefile
+        }
       });
       geo.setZIndex(this.zIndex.high); // on top of everything, so it can register clicks
       geo.addTo(this.map);
-     
+
       console.log("Geo:", geo);
     });
   }
 
-  private createUniversityBuildingsPopupContent(feature, self: this) {
+  private selectPoi(feature){
+    console.log("poi selected:",feature);
+    this.selectedPoi.feature = feature;
+  }
+
+  private updateSelectedPoiInfo() { 
+    this.updatePoiDistance();
+    this.updatePoiDuration();
+  }
+
+  private createUniversityBuildingsPopupContent() {
+    let poiProps = this.selectedPoi.feature.properties;
+
     let title = L.DomUtil.create('label');
-    title.innerText = feature.properties.number;
+    title.innerText = poiProps.number ? poiProps.number + " | " + poiProps.name : poiProps.name;
+
     let subtitle = L.DomUtil.create('p');
-    subtitle.innerText = feature.properties.name;
+    subtitle.innerText =  this.selectedPoi.distance.toString() + " meters";
+
     let popupButton = L.DomUtil.create('button');
     popupButton.innerText = "Details";
-    L.DomEvent.addListener(popupButton, 'click', function (event) {
-      self.goToUniversityBuildingDetailPage(feature);
+    L.DomEvent.addListener(popupButton, 'click', () => {
+      this.goToUniversityBuildingDetailPage();
     });
+
     let popupContent = L.DomUtil.create('div', 'popup-content-div');
     popupContent.appendChild(title);
     popupContent.appendChild(subtitle);
     popupContent.appendChild(popupButton);
+
     return popupContent;
   }
 
-  goToUniversityBuildingDetailPage(universityBuilding : any) {
-    console.log("going to detail page of university "+ JSON.stringify(universityBuilding));
-    this.navCtrl.push('UniversityBuildingDetailPage', { universityBuilding: universityBuilding });
+  goToUniversityBuildingDetailPage() {
+    console.log("going to detail page of university " + JSON.stringify(this.selectedPoi.feature));
+    this.navCtrl.push('UniversityBuildingDetailPage', {
+      universityBuilding: this.selectedPoi.feature,
+      distance: this.selectedPoi.distance
+    });
   }
 
 
@@ -175,9 +207,10 @@ export class MapPage {
     console.log("subscribing to location data");
     this.locationProvider.gpsReady.subscribe(() => {
 
-      this.lat = this.locationProvider.lat;
-      this.long = this.locationProvider.long;
+      this.lat = this.locationProvider.lat ? this.locationProvider.lat : this.lat;
+      this.long = this.locationProvider.long ? this.locationProvider.long : this.long;
       this.accuracy = this.locationProvider.accuracy;
+      this.speed = this.locationProvider.speed;
 
       if (!this.lat || !this.long || !this.accuracy) {
         return;
@@ -186,11 +219,16 @@ export class MapPage {
       this.updatePositionMarkerLocation(this.lat, this.long);
       this.updateAccuracyMarkerLocation(this.lat, this.long);
 
+      if(this.selectedPoi.feature){
+        this.updatePoiDistance();
+        this.updatePoiDuration();
+      }
+
       if (this.isTracking) {
         this.trackLocation();
       }
 
-      if (this.isAccuracy) {    
+      if (this.isAccuracy) {
         this.updateAccuracyMarkerRadius(this.accuracy);
       }
 
@@ -282,6 +320,29 @@ export class MapPage {
   private updateAccuracyMarkerLocation(lat: number, long: number) {
     //maybe here we can filter out big accidental jumps in location
     this.accuracyMarker.setLatLng(L.latLng(lat, long));
+  }
+
+  private updatePoiDistance() : void {
+    //should calculate air distance from user latlong to the provided latlong
+    let target = L.latLng({
+      lat: this.selectedPoi.feature.properties.centroid_lat,
+      lng :this.selectedPoi.feature.properties.centroid_long
+    })
+    let source = L.latLng({
+      lat: this.lat,
+      lng :this.long
+    })
+    this.selectedPoi.distance = Math.trunc(this.map.distance(source, target));
+  }
+
+  private updatePoiDuration() : void {
+    if (!this.speed || this.speed == 0) {
+      this.selectedPoi.duration = Infinity;
+    }
+
+    let time = this.selectedPoi.distance / this.speed;
+    time = Math.trunc(0.25 * time); //because its direct distance, so 25% to compensate for roads
+    this.selectedPoi.duration = time;
   }
 
 

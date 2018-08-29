@@ -16,9 +16,13 @@ import { UniversityBuilding } from '../../models/universityBuilding';
 })
 export class UniversityBuildingDetailPage {
   item: UniversityBuilding;
+  distance : number;
+  duration : number;
 
   constructor(public navCtrl: NavController, public navParams: NavParams) {
     let buildingGeojson = navParams.get('universityBuilding');
+    this.distance = navParams.get('distance');
+    this.duration = navParams.get('duration');
     this.item = new UniversityBuilding(buildingGeojson);
   }
 
