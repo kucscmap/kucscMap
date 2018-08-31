@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
+
+import { PhotoViewer } from '@ionic-native/photo-viewer';
+
 import { UniversityBuilding } from '../../models/universityBuilding';
 
 /**
@@ -17,11 +20,14 @@ import { UniversityBuilding } from '../../models/universityBuilding';
 export class UniversityBuildingDetailPage {
   item: UniversityBuilding;
   distance : number;
+  floorArray = [];
 
-  constructor(public navCtrl: NavController, public navParams: NavParams) {
+  constructor(public navCtrl: NavController, public navParams: NavParams,public photoViewer: PhotoViewer) {
     let buildingGeojson = navParams.get('universityBuilding');
     this.distance = navParams.get('distance');
     this.item = new UniversityBuilding(buildingGeojson);
+    this.floorArray = this.createNumberArray(this.item.floors);
+    console.log("floor array",this.floorArray);
   }
 
   ionViewDidLoad() {
@@ -31,5 +37,18 @@ export class UniversityBuildingDetailPage {
   replacePicture(){
     console.log("Picture loading failed, loading error picture.");
     return UniversityBuilding.PictureError;
+  }
+
+  showFloor(floor : number){
+    console.log("showing floor:", floor);
+  }
+
+  showPicture(src : string){
+    this.photoViewer.show(src, 'My image title', {share: false});
+  }
+
+  private createNumberArray(num : number) : number[]{
+    console.log("creating array");
+    return Array.from(new Array(num),(val,index)=>index+1);
   }
 }

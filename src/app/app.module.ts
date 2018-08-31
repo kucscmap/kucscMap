@@ -17,6 +17,7 @@ import { LocationProvider } from '../providers/location/location';
 import { Geolocation } from '@ionic-native/geolocation';
 import { DeviceOrientation } from '@ionic-native/device-orientation';
 import { DataProvider } from '../providers/data/data';
+import { PhotoViewer } from '@ionic-native/photo-viewer';
 
 // The translate loader needs to know where to load i18n files
 // in Ionic's static asset pipeline.
@@ -74,7 +75,8 @@ export function provideSettings(storage: Storage) {
     Geolocation,
     DeviceOrientation,
     LocationProvider,
-    DataProvider
+    DataProvider,
+    PhotoViewer
   ]
 })
 export class AppModule { }

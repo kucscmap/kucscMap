@@ -15,6 +15,7 @@ export class UniversityBuilding {
     about: string;
     gallery : string;
     address : string;
+    floors : number;
     [prop: string]: any;
 
     constructor(universityBuildingGeoJson?: any) {

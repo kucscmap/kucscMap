@@ -16,11 +16,22 @@
       <ion-note> {{distance}} meters</ion-note>
     </ion-item>
 
-    <img [src]="item.getTitlePicture()" (error)="img.src = replacePicture()" #img>
+    <img [src]="item.getTitlePicture()" (error)="img.src = replacePicture()" (click)="showPicture(img.src)" #img>
 
     <ion-card-content>
       <p>{{item.about}}</p>
     </ion-card-content>
+
+    <ion-row *ngIf='item.floors'>
+        <ion-col>
+            <ion-item>
+                <ion-label>
+                  Floors: {{item.floors}}
+                </ion-label>
+                <button *ngFor="let floor of floorArray" ion-button item-end (click)="showFloor(floor)">{{floor}}</button>     
+              </ion-item>
+        </ion-col>
+      </ion-row>
  
     <ion-row>
       <ion-col>

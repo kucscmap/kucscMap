@@ -431,8 +431,8 @@ export class MapPage {
   private updatePoiDistance(poi : any): void {
     //should calculate air distance from user latlong to the provided latlong
     let target = L.latLng({
-      lat: poi.feature.properties.centroid_lat,
-      lng: poi.feature.properties.centroid_long
+      lat: poi.feature.properties.ctr_lat,
+      lng: poi.feature.properties.ctr_long
     })
     let source = L.latLng({
       lat: this.lat,
@@ -472,7 +472,7 @@ export class MapPage {
     }).map((item) => {
       //This distance is only for displaying in the searchh results
       item.properties['distance'] = this.getDistance(
-        [item.properties.centroid_lat, item.properties.centroid_long],
+        [item.properties.ctr_lat, item.properties.ctr_long],
         [this.lat, this.long]);
       return item;
     });
@@ -497,7 +497,7 @@ export class MapPage {
     console.log("showPoiOnMap()")
     this.isTracking = false;
     this.selectPoi(item);
-    this.map.flyTo([item.properties.centroid_lat, item.properties.centroid_long], 17);
+    this.map.flyTo([item.properties.ctr_lat, item.properties.ctr_long], 17);
   }
 
   trackPoi(item: any) {

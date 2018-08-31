@@ -38,7 +38,9 @@ export class DataProvider {
 
   private enhanceUniversityBuildingData(){
     this.universityBuildings.features = this.universityBuildings.features.map((item) => {
-      item.properties['displayName'] = item.properties.number + " | " + item.properties.name;
+      item.properties['displayName'] = ""
+      item.properties['displayName'] += item.properties.number != null ? item.properties.number : "";
+      item.properties['displayName'] += item.properties.name != null ?  " | " + item.properties.name : "";
       return item;
     });
   }
