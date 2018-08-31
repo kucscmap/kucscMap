@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Api } from '../api/api';
-import { BehaviorSubject } from 'rxjs/Rx';
+import { BehaviorSubject, Observable } from 'rxjs/Rx';
 
 
 
@@ -20,16 +20,54 @@ export class DataProvider {
 
   public universityBuildings: any;
 
-  private dataReady: BehaviorSubject<boolean>;
+  private dataReadyUniversityBuildings: BehaviorSubject<boolean>;
 
   constructor(public api: Api) {
     console.log('Hello DataProvider Provider');
+    this.dataReadyUniversityBuildings = new BehaviorSubject(false);
+    this.getJsonAsync(DATA_SOURCE.BuildingsUniversity);
   }
 
- getJsonAsync(dataSource : DATA_SOURCE, params?: any): any{
-  return this.api.getLocal(dataSource, params);
- }
+  private getJsonAsync(dataSource: DATA_SOURCE, params?: any) {
+    this.api.getLocal(dataSource, params).subscribe((data) => {
+      this.universityBuildings = data;
+      this.dataReadyUniversityBuildings.next(true);
+    });
+  }
 
- 
 
+  query(params?: any): any[] {
+    let buildings = this.universityBuildings.features;
+
+    if (!params) {
+      return buildings;
+    }
+    return buildings.filter((item) => {
+      for (let key in params) {
+        let field = item.properties[key];
+        if (typeof field == 'string' && field.toLowerCase().indexOf(params[key].toLowerCase()) >= 0) {
+          return item;
+        } else if (field == params[key]) {
+          return item;
+        }
+      }
+      return null;
+    });
+  }
+
+
+  add(item: any) {
+  }
+
+  delete(item: any) {
+  }
+
+  getDataState(dataSource: DATA_SOURCE) {
+    if (dataSource == DATA_SOURCE.BuildingsUniversity) {
+      return this.dataReadyUniversityBuildings.asObservable();
+    }
+
+    //make if for the other type of data observable instead of this
+    return this.dataReadyUniversityBuildings.asObservable();
+  }
 }

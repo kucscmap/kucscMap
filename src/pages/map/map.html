@@ -6,29 +6,87 @@
 -->
 <ion-header>
 
-  <ion-navbar>
-    <ion-title>{{ 'MAP_TITLE' | translate }}</ion-title>
-  </ion-navbar>
+  <ion-toolbar color="primary">
+    <ion-searchbar #input (ionInput)="getItems($event)" placeholder="{{ 'SEARCH_PLACEHOLDER' | translate }}"></ion-searchbar>
+  </ion-toolbar>
 
 </ion-header>
 
 
+
+
 <ion-content>
-  <!-- <div>
-    <p>Showing geolocation info here</p>
-    <ul>
-      <li>LAT: {{lat}}</li>
-      <li>LONG: {{long}}</li>
-      <li>ACCURACY: {{accuracy}} meters</li>
-    </ul>
+  <ion-card id="search-result-container">
+    <ion-list>
+      <ion-item-sliding *ngFor="let item of currentItems">
+        <button ion-item>
+          <h2>{{item.properties.displayName}}</h2>
+          <p>{{item.properties.distance}} meters</p>
+          <ion-note item-end>
+            <ion-icon name="arrow-dropleft"></ion-icon>
+          </ion-note>
+        </button>
+        <ion-item-options side="right" (click)="closeSearchResults()">
+          <button ion-button color="light" (click)="openItem(item)">
+            <ion-icon name="menu"></ion-icon>
+            More
+          </button>
+          <button ion-button color="light" (click)="showPoiOnMap(item)">
+            <ion-icon name="pin"></ion-icon>
+            Show
+          </button>
+          <button ion-button color="light" (click)="trackPoi(item)">
+            <ion-icon name="navigate"></ion-icon>
+            Track
+          </button>
+        </ion-item-options>
+      </ion-item-sliding>
+    </ion-list>
+  </ion-card>
 
-    <p>Showing compass info here</p>
-    <ul>
-      <li>MAGNETIC HEADING: {{compassMagneticHeading}}</li>
-    </ul>
-  </div> -->
+  <ion-card id="track-container" *ngIf='selectedPoi.tracking'>
+      <ion-card-header>
+        "10 | Building sometngrgre eg e grg egggggreg er greg "
+      </ion-card-header>
+      <ion-row>
+        <ion-col>
+          Distance: {{selectedPoi.feature.properties}} meters
+        </ion-col>
+        <ion-col>
+          Speed: {{speed}} m/s
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          Est.Time: {{selectedPoi.duration}} seconds
+        </ion-col>
+        <ion-col>
+          Duration: 0:20 minutes
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+          <button ion-button color="dark" small icon-start (click)="openItem(selectedPoi.feature)">
+            <ion-icon name="menu"></ion-icon>
+            More
+          </button>
+        </ion-col>
+        <ion-col>
+          <button ion-button color="dark" small icon-start (click)="showPoiOnMap(selectedPoi.feature)">
+            <ion-icon name="pin"></ion-icon>
+            Show
+          </button>
+        </ion-col>
+        <ion-col>
+          <button ion-button color="danger" small icon-start (click)="cancelPoiTracking()">
+            <ion-icon name="remove-circle"></ion-icon>
+            Cancel
+          </button>
+        </ion-col>
+      </ion-row>
+    </ion-card>
 
-  <div id="map"></div>
+  <div id="map" #map></div>
 
   <ion-fab right bottom>
     <button ion-fab color="light">

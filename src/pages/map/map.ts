@@ -1,5 +1,5 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
-import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { Component, ViewChild, ElementRef, Renderer2 } from '@angular/core';
+import { IonicPage, NavController, NavParams, Searchbar } from 'ionic-angular';
 import { Platform } from 'ionic-angular';
 import * as L from 'leaflet';
 import { TilesProvider, LocationProvider, DataProvider, DATA_SOURCE } from '../../providers'
@@ -25,6 +25,7 @@ enum PositionMarkerIconUrl {
 
 export class MapPage {
   @ViewChild('map') mapContainer: ElementRef;
+  @ViewChild(Searchbar) searchBar;
   map: L.Map;
   readonly minZoom: number = 13;
   readonly maxZoom: number = 19;
@@ -46,22 +47,27 @@ export class MapPage {
 
   public selectedPoi = {
     feature: null,
-    distance : Infinity,
-    duration : Infinity
+    distance: Infinity,
+    time: Infinity,
+    tracking: false
   };
-  
+
 
   public positionMarker: L.Marker = null;
   public accuracyMarker: L.Circle = null;
 
   public universityBuildings: any;
 
+  currentItems: any = [];
+
   constructor(platform: Platform,
     public navCtrl: NavController,
     public navParams: NavParams,
     public tilesProvider: TilesProvider,
     public locationProvider: LocationProvider,
-    public dataProvider: DataProvider) {
+    public dataProvider: DataProvider,
+    public renderer: Renderer2
+  ) {
 
     platform.ready().then((readySource) => {
       console.log('Platform ready from ', readySource);
@@ -81,22 +87,27 @@ export class MapPage {
     this.subscribeToMapTileSource();
 
     this.subscribeToLocationData();
+
   }
 
   private loadUniversityBuildingsData() {
     console.log("getting universityBuilding data");
-    this.dataProvider.getJsonAsync(DATA_SOURCE.BuildingsUniversity).subscribe(data => {
-      console.log("data received", data);
-      this.universityBuildings = data;
+    this.dataProvider.getDataState(DATA_SOURCE.BuildingsUniversity).subscribe(rdy => {
+      if (!rdy) {
+        console.log("Uni buildings data not yet ready");
+        return;
+      }
+
+      console.log("Uni buildings data ready!!!");
+      this.universityBuildings = this.dataProvider.universityBuildings;
 
       let self = this;
       let geo = L.geoJSON(this.universityBuildings, {
-        onEachFeature: (feature, layer) => {        
-          let popup = new L.Popup();       
+        onEachFeature: (feature, layer) => {
+          let popup = new L.Popup();
           layer.bindPopup(popup);
-          layer.on("click",() => {
+          layer.on("click", () => {
             this.selectPoi(feature);
-            this.updateSelectedPoiInfo();
             popup.setContent(this.createUniversityBuildingsPopupContent());
           })
         },
@@ -111,12 +122,16 @@ export class MapPage {
     });
   }
 
-  private selectPoi(feature){
-    console.log("poi selected:",feature);
+  private selectPoi(feature) {
+    console.log("poi selected:", feature);
     this.selectedPoi.feature = feature;
+    if (feature) {
+      this.updateSelectedPoiInfo();
+    }
+
   }
 
-  private updateSelectedPoiInfo() { 
+  private updateSelectedPoiInfo() {
     this.updatePoiDistance();
     this.updatePoiDuration();
   }
@@ -128,18 +143,25 @@ export class MapPage {
     title.innerText = poiProps.number ? poiProps.number + " | " + poiProps.name : poiProps.name;
 
     let subtitle = L.DomUtil.create('p');
-    subtitle.innerText =  this.selectedPoi.distance.toString() + " meters";
+    subtitle.innerText = this.selectedPoi.distance.toString() + " meters";
 
-    let popupButton = L.DomUtil.create('button');
-    popupButton.innerText = "Details";
-    L.DomEvent.addListener(popupButton, 'click', () => {
+    let popupButtonDetail = L.DomUtil.create('button');
+    popupButtonDetail.innerText = "Details";
+    L.DomEvent.addListener(popupButtonDetail, 'click', () => {
       this.goToUniversityBuildingDetailPage();
+    });
+
+    let popupButtonTrack = L.DomUtil.create('button');
+    popupButtonTrack.innerText = "Track";
+    L.DomEvent.addListener(popupButtonTrack, 'click', () => {
+      this.trackPoi(this.selectedPoi.feature);
     });
 
     let popupContent = L.DomUtil.create('div', 'popup-content-div');
     popupContent.appendChild(title);
     popupContent.appendChild(subtitle);
-    popupContent.appendChild(popupButton);
+    popupContent.appendChild(popupButtonDetail);
+    popupContent.appendChild(popupButtonTrack);
 
     return popupContent;
   }
@@ -219,9 +241,8 @@ export class MapPage {
       this.updatePositionMarkerLocation(this.lat, this.long);
       this.updateAccuracyMarkerLocation(this.lat, this.long);
 
-      if(this.selectedPoi.feature){
-        this.updatePoiDistance();
-        this.updatePoiDuration();
+      if (this.selectedPoi.feature) {
+        this.updateSelectedPoiInfo();
       }
 
       if (this.isTracking) {
@@ -279,7 +300,7 @@ export class MapPage {
     }
   }
 
-  switchTracking() {
+  switchTracking(value?:boolean) {
     this.isTracking = !this.isTracking;
     console.log("isTracking:", this.isTracking);
   }
@@ -322,29 +343,112 @@ export class MapPage {
     this.accuracyMarker.setLatLng(L.latLng(lat, long));
   }
 
-  private updatePoiDistance() : void {
+  private updatePoiDistance(): void {
     //should calculate air distance from user latlong to the provided latlong
     let target = L.latLng({
       lat: this.selectedPoi.feature.properties.centroid_lat,
-      lng :this.selectedPoi.feature.properties.centroid_long
+      lng: this.selectedPoi.feature.properties.centroid_long
     })
     let source = L.latLng({
       lat: this.lat,
-      lng :this.long
+      lng: this.long
     })
-    this.selectedPoi.distance = Math.trunc(this.map.distance(source, target));
+    this.selectedPoi.distance = this.getDistance(source, target);
   }
 
-  private updatePoiDuration() : void {
+  getDistance(source: L.LatLngExpression, target: L.LatLngExpression): number {
+    return Math.trunc(this.map.distance(source, target));
+  }
+
+  private updatePoiDuration(): void {
     if (!this.speed || this.speed == 0) {
-      this.selectedPoi.duration = Infinity;
+      this.selectedPoi.time = Infinity;
     }
 
     let time = this.selectedPoi.distance / this.speed;
     time = Math.trunc(0.25 * time); //because its direct distance, so 25% to compensate for roads
-    this.selectedPoi.duration = time;
+    this.selectedPoi.time = time;
   }
 
+
+  /**
+  * Perform a service for the proper items.
+  */
+  getItems(ev) {
+    let val = ev.target.value;
+    console.log("getItems called with value:", val)
+    if (!val || !val.trim()) {
+      this.currentItems = [];
+      return;
+    }
+    this.currentItems = this.dataProvider.query({
+      name: val,
+      number: val
+    }).map((item) => {
+      item.properties['displayName'] = item.properties.number + " | " + item.properties.name;
+      item.properties['distance'] = this.getDistance(
+        [item.properties.centroid_lat, item.properties.centroid_long],
+        [this.lat, this.long]);
+      return item;
+    });
+    console.log("currentItems", this.currentItems);
+  }
+
+  closeSearchResults() {
+    console.log("closeSearchResults()");
+    this.currentItems = [];
+  }
+
+  /**
+   * Navigate to the detail page for this item.
+   */
+  openItem(item: any) {
+    console.log("openItem()");
+    this.selectPoi(item);
+    this.goToUniversityBuildingDetailPage();
+  }
+
+  showPoiOnMap(item: any) {
+    console.log("showPoiOnMap()")
+    this.isTracking = false;
+    this.selectPoi(item);
+    this.map.flyTo([item.properties.centroid_lat, item.properties.centroid_long], 17);
+  }
+
+  trackPoi(item: any) {
+    this.selectPoi(item);
+
+    console.log("trackPoi()")
+    //deactivate search while tracking
+    this.disableSearchBar(true);
+
+    this.selectedPoi.tracking = true;
+    //add pin or marker to tracked buildinglocation
+    //buttons: cancel
+    //info: building display name, distance, duration, time elapsed 
+    //if distance too close, display message: You are already at the building
+    //if arrived to destination, display message arrived (maybe also notification), with ok button
+  }
+
+  cancelPoiTracking() {
+    this.selectPoi(null);
+    console.log("tracking canceled");
+    this.disableSearchBar(false);
+    this.selectedPoi.tracking = false;
+  }
+
+  private disableSearchBar(disabled: boolean) {
+    let input = this.searchBar.getElementRef().nativeElement.querySelector('input');
+    this.renderer.setStyle(input, 'background-color', disabled ? 'rgb(235, 235, 228)' : '#fff');
+
+    if (disabled) {
+      this.renderer.setAttribute(input, 'disabled', 'true');
+    } else {
+      this.renderer.removeAttribute(input, 'disabled')
+    }
+    //clearing value is maybe not required
+    //input.value = '';
+  }
 
   test() {
     //load map only after the view did load
