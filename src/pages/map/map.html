@@ -44,13 +44,13 @@
     </ion-list>
   </ion-card>
 
-  <ion-card id="track-container" *ngIf='selectedPoi.tracking'>
+  <ion-card id="track-container" *ngIf='trackedPoi.feature'>
       <ion-card-header>
-        "10 | Building sometngrgre eg e grg egggggreg er greg "
+          {{trackedPoi.feature.properties.displayName}}
       </ion-card-header>
       <ion-row>
         <ion-col>
-          Distance: {{selectedPoi.feature.properties}} meters
+          Distance: {{formatDistance(trackedPoi.distance)}}
         </ion-col>
         <ion-col>
           Speed: {{speed}} m/s
@@ -58,21 +58,21 @@
       </ion-row>
       <ion-row>
         <ion-col>
-          Est.Time: {{selectedPoi.duration}} seconds
+          ETA: {{formatTime(trackedPoi.time)}}
         </ion-col>
         <ion-col>
-          Duration: 0:20 minutes
+          Duration: {{formatTime(trackedPoi.elapsedTime)}}
         </ion-col>
       </ion-row>
       <ion-row>
         <ion-col>
-          <button ion-button color="dark" small icon-start (click)="openItem(selectedPoi.feature)">
+          <button ion-button color="dark" small icon-start (click)="openItem(trackedPoi.feature)">
             <ion-icon name="menu"></ion-icon>
             More
           </button>
         </ion-col>
         <ion-col>
-          <button ion-button color="dark" small icon-start (click)="showPoiOnMap(selectedPoi.feature)">
+          <button ion-button color="dark" small icon-start (click)="showPoiOnMap(trackedPoi.feature)">
             <ion-icon name="pin"></ion-icon>
             Show
           </button>

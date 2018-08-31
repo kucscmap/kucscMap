@@ -31,7 +31,15 @@ export class DataProvider {
   private getJsonAsync(dataSource: DATA_SOURCE, params?: any) {
     this.api.getLocal(dataSource, params).subscribe((data) => {
       this.universityBuildings = data;
+      this.enhanceUniversityBuildingData();
       this.dataReadyUniversityBuildings.next(true);
+    });
+  }
+
+  private enhanceUniversityBuildingData(){
+    this.universityBuildings.features = this.universityBuildings.features.map((item) => {
+      item.properties['displayName'] = item.properties.number + " | " + item.properties.name;
+      return item;
     });
   }
 
@@ -52,7 +60,7 @@ export class DataProvider {
         }
       }
       return null;
-    });
+    })
   }
 
 

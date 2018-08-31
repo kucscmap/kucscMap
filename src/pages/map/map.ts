@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef, Renderer2 } from '@angular/core';
-import { IonicPage, NavController, NavParams, Searchbar } from 'ionic-angular';
+import { IonicPage, NavController, NavParams, Searchbar, ToastController } from 'ionic-angular';
 import { Platform } from 'ionic-angular';
 import * as L from 'leaflet';
 import { TilesProvider, LocationProvider, DataProvider, DATA_SOURCE } from '../../providers'
@@ -45,12 +45,21 @@ export class MapPage {
   public accuracy: number = 0;
   public compassMagneticHeading: number = 0;
 
+  public timer = null;
+
   public selectedPoi = {
     feature: null,
     distance: Infinity,
     time: Infinity,
-    tracking: false
   };
+
+  public trackedPoi = {
+    feature: null,
+    distance: Infinity,
+    time: Infinity,
+    elapsedTime : 0
+  };
+
 
 
   public positionMarker: L.Marker = null;
@@ -66,7 +75,8 @@ export class MapPage {
     public tilesProvider: TilesProvider,
     public locationProvider: LocationProvider,
     public dataProvider: DataProvider,
-    public renderer: Renderer2
+    public renderer: Renderer2,
+    private toastCtrl: ToastController
   ) {
 
     platform.ready().then((readySource) => {
@@ -126,14 +136,22 @@ export class MapPage {
     console.log("poi selected:", feature);
     this.selectedPoi.feature = feature;
     if (feature) {
-      this.updateSelectedPoiInfo();
+      this.updatePoiInfo(this.selectedPoi);
     }
 
   }
 
-  private updateSelectedPoiInfo() {
-    this.updatePoiDistance();
-    this.updatePoiDuration();
+  private selectTrackingPoi(feature) {
+    console.log("poi for tracking selected:", feature);
+    this.trackedPoi.feature = feature;
+    if (feature) {
+      this.updatePoiInfo(this.trackedPoi);
+    }
+  }
+
+  private updatePoiInfo(poi: any) {
+    this.updatePoiDistance(poi);
+    this.updatePoiTime(poi);
   }
 
   private createUniversityBuildingsPopupContent() {
@@ -232,7 +250,8 @@ export class MapPage {
       this.lat = this.locationProvider.lat ? this.locationProvider.lat : this.lat;
       this.long = this.locationProvider.long ? this.locationProvider.long : this.long;
       this.accuracy = this.locationProvider.accuracy;
-      this.speed = this.locationProvider.speed;
+      this.speed = this.toSinglePrecision(this.locationProvider.speed);
+
 
       if (!this.lat || !this.long || !this.accuracy) {
         return;
@@ -242,7 +261,11 @@ export class MapPage {
       this.updateAccuracyMarkerLocation(this.lat, this.long);
 
       if (this.selectedPoi.feature) {
-        this.updateSelectedPoiInfo();
+        this.updatePoiInfo(this.selectedPoi);
+      }
+
+      if (this.trackedPoi.feature) {
+        this.updatePoiInfo(this.trackedPoi);
       }
 
       if (this.isTracking) {
@@ -254,6 +277,7 @@ export class MapPage {
       }
 
     });
+    
 
     this.locationProvider.compassReady.subscribe(() => {
       // console.log(`Compass ready;
@@ -267,6 +291,10 @@ export class MapPage {
 
       this.updatePositionMarkerHeading(this.compassMagneticHeading);
     })
+  }
+
+  private toSinglePrecision(number: number) : number{
+    return (Math.trunc(number*10) / 10)
   }
 
   private createPositionMarker() {
@@ -343,31 +371,31 @@ export class MapPage {
     this.accuracyMarker.setLatLng(L.latLng(lat, long));
   }
 
-  private updatePoiDistance(): void {
+  private updatePoiDistance(poi : any): void {
     //should calculate air distance from user latlong to the provided latlong
     let target = L.latLng({
-      lat: this.selectedPoi.feature.properties.centroid_lat,
-      lng: this.selectedPoi.feature.properties.centroid_long
+      lat: poi.feature.properties.centroid_lat,
+      lng: poi.feature.properties.centroid_long
     })
     let source = L.latLng({
       lat: this.lat,
       lng: this.long
     })
-    this.selectedPoi.distance = this.getDistance(source, target);
+    poi.distance = this.getDistance(source, target);
   }
 
   getDistance(source: L.LatLngExpression, target: L.LatLngExpression): number {
     return Math.trunc(this.map.distance(source, target));
   }
 
-  private updatePoiDuration(): void {
+  private updatePoiTime(poi : any): void {
     if (!this.speed || this.speed == 0) {
-      this.selectedPoi.time = Infinity;
+      poi.time = Infinity;
     }
 
-    let time = this.selectedPoi.distance / this.speed;
-    time = Math.trunc(0.25 * time); //because its direct distance, so 25% to compensate for roads
-    this.selectedPoi.time = time;
+    let time = poi.distance / this.speed;
+    time = Math.trunc(1.25 * time); //because its direct distance, so 25% to compensate for roads
+    poi.time = time;
   }
 
 
@@ -385,7 +413,7 @@ export class MapPage {
       name: val,
       number: val
     }).map((item) => {
-      item.properties['displayName'] = item.properties.number + " | " + item.properties.name;
+      //This distance is only for displaying in the searchh results
       item.properties['distance'] = this.getDistance(
         [item.properties.centroid_lat, item.properties.centroid_long],
         [this.lat, this.long]);
@@ -416,25 +444,60 @@ export class MapPage {
   }
 
   trackPoi(item: any) {
-    this.selectPoi(item);
-
     console.log("trackPoi()")
+
+    //change this to id
+    if(this.trackedPoi.feature && this.trackedPoi.feature.properties.id == item.properties.id){
+      console.log("Poi is already being tracked");
+      return;
+    }
+
+    if(this.trackedPoi.feature){
+      this.changedTrackPoiNotification();
+    }
+
+    this.selectTrackingPoi(item);
+    this.startTimer();
+
     //deactivate search while tracking
     this.disableSearchBar(true);
 
-    this.selectedPoi.tracking = true;
     //add pin or marker to tracked buildinglocation
-    //buttons: cancel
-    //info: building display name, distance, duration, time elapsed 
     //if distance too close, display message: You are already at the building
     //if arrived to destination, display message arrived (maybe also notification), with ok button
   }
 
+  private changedTrackPoiNotification(){
+    let toast = this.toastCtrl.create({
+      message: 'Changed tracking target.',
+      duration: 2000,
+      position: 'top'
+    });
+
+    toast.present();
+  }
+
+  private startTimer(){
+    this.trackedPoi.elapsedTime = 0;
+    if(this.timer){
+      this.stopTimer();
+    }
+    this.timer = setInterval(() => {
+      this.trackedPoi.elapsedTime++;
+    },1000)
+
+  }
+
+  private stopTimer(){
+    clearInterval(this.timer);
+    this.timer = null;
+  }
+
   cancelPoiTracking() {
-    this.selectPoi(null);
     console.log("tracking canceled");
     this.disableSearchBar(false);
-    this.selectedPoi.tracking = false;
+    this.trackedPoi.feature = null;
+    this.stopTimer();
   }
 
   private disableSearchBar(disabled: boolean) {
@@ -448,6 +511,35 @@ export class MapPage {
     }
     //clearing value is maybe not required
     //input.value = '';
+  }
+
+  formatTime(time : number) : string{
+    if(time == Infinity){
+      return 'Infinity';
+    }
+
+    let seconds = time % 60;
+    let minutes = Math.trunc(time / 60);
+    let hours = Math.trunc(minutes / 60);
+
+    let formatedTime = '';
+    if(hours > 0){ formatedTime = hours + 'h '; }
+    if(minutes > 0 || (hours > 0 && seconds > 0)){ formatedTime += minutes + 'm '; }
+    if(seconds > 0){ formatedTime += seconds + 's';}
+    
+    return formatedTime;
+  }
+
+  formatDistance(distance : number) : string{
+    if(distance == Infinity){
+      return 'Infinity';
+    }
+    if (distance >= 1000){
+      return distance / 1000 + " km"
+    }
+
+    return distance + " m"
+
   }
 
   test() {
