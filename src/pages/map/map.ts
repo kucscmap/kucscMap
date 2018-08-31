@@ -17,6 +17,55 @@ enum PositionMarkerIconUrl {
   Empty = 'assets/icon/nav_empty.svg'
 }
 
+/**You can use this class to smooth continues measurements, e.g. to prevent sudden changes in the values
+ * 
+ */
+class MeasurementSmoother {
+  private _store: number[] = [];
+  private _length: number;
+
+  constructor(length : number){
+    if(length < 1){
+      this._length = 1;
+    }else{
+      this._length = length;
+    }
+  };
+
+  push(val: number) {
+    if(this._store.length > this._length){
+      this.pop();
+    }
+    this._store.push(val);
+  }
+
+  private pop(): number | undefined {
+    return this._store.shift();
+  }
+
+  getValues() : number[] {
+    return this._store;
+  }
+
+  getLength() : number {
+    return this._length
+  }
+
+  getAverage(): number {
+    if(this._store.length == 0){
+      return 0;
+    }
+
+    let sum = 0;
+
+    for (let index = 0; index < this._store.length; index++) {
+      sum += this._store[index];
+    }
+
+    return sum / this._store.length;
+  }
+}
+
 @IonicPage()
 @Component({
   selector: 'page-map',
@@ -42,8 +91,12 @@ export class MapPage {
   public lat: number = this.initialPosition.lat;
   public long: number = this.initialPosition.long;
   public speed: number = 0;
+  public speedAvg : number = 0;
   public accuracy: number = 0;
   public compassMagneticHeading: number = 0;
+
+  public speedSmoothed: number = 0;
+  public measurementSmoother = new MeasurementSmoother(3);
 
   public timer = null;
 
@@ -57,7 +110,7 @@ export class MapPage {
     feature: null,
     distance: Infinity,
     time: Infinity,
-    elapsedTime : 0
+    elapsedTime : 0,
   };
 
 
@@ -99,6 +152,60 @@ export class MapPage {
     this.subscribeToLocationData();
 
   }
+
+  subscribeToLocationData() {
+    console.log("subscribing to location data");
+    this.locationProvider.gpsReady.subscribe(() => {
+
+      this.lat = this.locationProvider.lat ? this.locationProvider.lat : this.lat;
+      this.long = this.locationProvider.long ? this.locationProvider.long : this.long;
+      this.accuracy = this.locationProvider.accuracy;
+      this.speed = this.locationProvider.speed;
+      this.speedAvg = this.toSinglePrecision( (this.speedAvg + this.speed) / 2 );
+      this.measurementSmoother.push(this.speed);
+      this.speedSmoothed = this.toSinglePrecision(this.measurementSmoother.getAverage());
+
+
+      if (!this.lat || !this.long || !this.accuracy) {
+        return;
+      }
+
+      this.updatePositionMarkerLocation(this.lat, this.long);
+      this.updateAccuracyMarkerLocation(this.lat, this.long);
+
+      if (this.selectedPoi.feature) {
+        this.updatePoiInfo(this.selectedPoi);
+      }
+
+      if (this.trackedPoi.feature) {
+        this.updatePoiInfo(this.trackedPoi);
+      }
+
+      if (this.isTracking) {
+        this.trackLocation();
+      }
+
+      if (this.isAccuracy) {
+        this.updateAccuracyMarkerRadius(this.accuracy);
+      }
+
+    });
+    
+
+    this.locationProvider.compassReady.subscribe(() => {
+      // console.log(`Compass ready;
+      // magnetic heading = ${this.locationProvider.compassMagneticHeading}`);
+
+      this.compassMagneticHeading = this.locationProvider.compassMagneticHeading;
+
+      if (!this.compassMagneticHeading) {
+        return;
+      }
+
+      this.updatePositionMarkerHeading(this.compassMagneticHeading);
+    })
+  }
+
 
   private loadUniversityBuildingsData() {
     console.log("getting universityBuilding data");
@@ -243,56 +350,6 @@ export class MapPage {
   }
 
 
-  subscribeToLocationData() {
-    console.log("subscribing to location data");
-    this.locationProvider.gpsReady.subscribe(() => {
-
-      this.lat = this.locationProvider.lat ? this.locationProvider.lat : this.lat;
-      this.long = this.locationProvider.long ? this.locationProvider.long : this.long;
-      this.accuracy = this.locationProvider.accuracy;
-      this.speed = this.toSinglePrecision(this.locationProvider.speed);
-
-
-      if (!this.lat || !this.long || !this.accuracy) {
-        return;
-      }
-
-      this.updatePositionMarkerLocation(this.lat, this.long);
-      this.updateAccuracyMarkerLocation(this.lat, this.long);
-
-      if (this.selectedPoi.feature) {
-        this.updatePoiInfo(this.selectedPoi);
-      }
-
-      if (this.trackedPoi.feature) {
-        this.updatePoiInfo(this.trackedPoi);
-      }
-
-      if (this.isTracking) {
-        this.trackLocation();
-      }
-
-      if (this.isAccuracy) {
-        this.updateAccuracyMarkerRadius(this.accuracy);
-      }
-
-    });
-    
-
-    this.locationProvider.compassReady.subscribe(() => {
-      // console.log(`Compass ready;
-      // magnetic heading = ${this.locationProvider.compassMagneticHeading}`);
-
-      this.compassMagneticHeading = this.locationProvider.compassMagneticHeading;
-
-      if (!this.compassMagneticHeading) {
-        return;
-      }
-
-      this.updatePositionMarkerHeading(this.compassMagneticHeading);
-    })
-  }
-
   private toSinglePrecision(number: number) : number{
     return (Math.trunc(number*10) / 10)
   }
@@ -389,11 +446,11 @@ export class MapPage {
   }
 
   private updatePoiTime(poi : any): void {
-    if (!this.speed || this.speed == 0) {
+    if (!this.speedAvg || this.speedAvg == 0) {
       poi.time = Infinity;
     }
 
-    let time = poi.distance / this.speed;
+    let time = poi.distance / this.speedAvg;
     time = Math.trunc(1.25 * time); //because its direct distance, so 25% to compensate for roads
     poi.time = time;
   }
@@ -456,6 +513,7 @@ export class MapPage {
       this.changedTrackPoiNotification();
     }
 
+    this.speedAvg = 0; //resseting average speed;
     this.selectTrackingPoi(item);
     this.startTimer();
 
