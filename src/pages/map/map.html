@@ -23,7 +23,8 @@
           <h2>{{item.properties.displayName}}</h2>
           <p>{{item.properties.distance}} meters</p>
           <ion-note item-end>
-            <ion-icon name="arrow-dropleft"></ion-icon>
+            <ion-icon [ngClass]="'icon-vertical-middle'" name="arrow-dropleft"></ion-icon>
+            Swipe
           </ion-note>
         </button>
         <ion-item-options side="right" (click)="closeSearchResults()">

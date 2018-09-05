@@ -451,7 +451,7 @@ export class MapPage {
     }
 
     let time = poi.distance / this.speedAvg;
-    time = Math.trunc(1.25 * time); //because its direct distance, so 25% to compensate for roads
+    time = Math.trunc(1.1 * time); //because its direct distance, so 10% to compensate for roads
     poi.time = time;
   }
 
@@ -528,7 +528,7 @@ export class MapPage {
   private changedTrackPoiNotification(){
     let toast = this.toastCtrl.create({
       message: 'Changed tracking target.',
-      duration: 2000,
+      duration: 3000,
       position: 'top'
     });
 

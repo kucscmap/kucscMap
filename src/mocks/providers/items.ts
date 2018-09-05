@@ -3,6 +3,10 @@ import { Injectable } from '@angular/core';
 import { Item } from '../../models/item';
 
 @Injectable()
+
+/**Item represents a teacher
+ * 
+ */
 export class Items {
   items: Item[] = [];
 

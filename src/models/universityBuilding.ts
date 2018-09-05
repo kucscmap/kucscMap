@@ -2,6 +2,7 @@ export class UniversityBuilding {
 
     static readonly PictureFolder = "assets/img/university-buildings/";
     static readonly PictureError = "assets/img/university-buildings/error.jpg"
+ 
     static readonly Default : any = {
         number: 999,
         name: "Undefined",
@@ -10,6 +11,8 @@ export class UniversityBuilding {
         address : "Unknown"
     }
 
+    private readonly floorString = "floor-";
+    private readonly imgExt = ".jpg";
     number: number;
     name: string;
     about: string;
@@ -45,11 +48,15 @@ export class UniversityBuilding {
     }
 
     getTitlePicture() : string {
-        return this.gallery + "0.jpg"
+        return this.gallery + "0" + this.imgExt;
     }
 
     getPicture(pictureNumber : number) : string {
-        return this.gallery + pictureNumber +".jpg";
+        return this.gallery + pictureNumber + this.imgExt;
+    }
+
+    getFloorPicture(floor : number) : string {
+        return this.gallery + this.floorString + floor + this.imgExt;
     }
 
     getErrorPicture(pictureNumber : number) : string {

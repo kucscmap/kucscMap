@@ -39,12 +39,24 @@ export class UniversityBuildingDetailPage {
     return UniversityBuilding.PictureError;
   }
 
-  showFloor(floor : number){
-    console.log("showing floor:", floor);
+  showFloorPicture(floor : number){
+    //this must be redone for IOS deployment
+    let androidFilePath = "file:///android_asset/www/";
+    console.log("showing floor:", androidFilePath + this.item.getFloorPicture(floor));
+    this.showPicture(androidFilePath + this.item.getFloorPicture(floor), floor.toString());
   }
 
-  showPicture(src : string){
-    this.photoViewer.show(src, 'My image title', {share: false});
+  /**the photoViewer plugin handles creating the path correctly when the image path
+   * is inserted into and "img" element as "src" attribute. Directly injecting the image path
+   * as the attribute of "show()" function does not display the image correctly.
+   * See function "showFloorPicture()" to see a hack how to make it work in that case.
+   * 
+   * @param src 
+   * @param pictureName 
+   */
+  showPicture(src : string, pictureName : string = this.item.name){
+    console.log("showing picture:",src);
+    this.photoViewer.show(src, pictureName, {share: false});
   }
 
   private createNumberArray(num : number) : number[]{

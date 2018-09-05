@@ -8,6 +8,10 @@ import { Items } from '../../providers';
   selector: 'page-item-detail',
   templateUrl: 'item-detail.html'
 })
+
+/**This page is the teacher's details page
+ * 
+ */
 export class ItemDetailPage {
   item: any;
 
