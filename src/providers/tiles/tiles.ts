@@ -97,20 +97,12 @@ export class TilesProvider {
         leaflet.Util.setOptions(this, options);
       },
       getTileUrl: function (tilePoint, tile) {
-        console.log('gettingcustm custom layer URL');
-        //console.log("Tile: " + JSON.stringify(tile));
-        console.log("TilePoint: " + JSON.stringify(tilePoint));
-       
-
         let z = tilePoint.z;
         let x = tilePoint.x;
         let y = this._globalTileRange.max.y - tilePoint.y; 
 
-        console.log('get tile [z, x ,y]' + '[' + z + ',' + x + ',' + y + ']');
-
         this.mbTilesDB.executeSql('SELECT BASE64(tile_data) AS base64_data FROM images INNER JOIN map ON images.tile_id = map.tile_id WHERE zoom_level = ? AND tile_column = ? AND tile_row = ?', [z, x, y],
           function (res) {
-            console.log('success query:', JSON.stringify(res));
             let src = self.base64Prefix + res.rows.item(0).base64_data;
             tile.src = src;
           }, function (er) {
@@ -121,7 +113,6 @@ export class TilesProvider {
     });
 
     console.log("tiles extended");
-    console.log("extended layer after extension", leaflet.TileLayer['MBTiles'])
   }
 
   getDatabaseState() {

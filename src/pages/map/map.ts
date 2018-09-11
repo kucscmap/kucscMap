@@ -141,23 +141,20 @@ export class MapPage {
 
   ionViewDidEnter() {
     console.log("ionViewDidEnter MapPage ");
-    if(this.map){
-     
-    }
+     if(this.map){
+      this.map.invalidateSize(); //must be here to prevent rendering issues after entering bulding detail page, displayeing picture fullscreen and returning to map page.
+     }
+  }
+
+  ionViewWillUnload(){
+    console.log("ionViewWillUnload MapPage ");
   }
 
   ionViewDidLoad() {
     //good place for initializing first time the view/page loades
     console.log('ionViewDidLoad MapPage');
-    console.log('leaflet extended tile layer:', L.TileLayer['MBTiles']);
    
-   
-    console.log("mapContainer before",this.mapContainer);
-    console.log("map before",this.map);
-    console.log("creating map");
     this.createMap();    //load map only after the view did 
-    console.log("mapContainer after",this.mapContainer);
-    console.log("map after",this.map);
     
     this.createPositionMarker();
     this.createAccuracyMarker();
@@ -245,7 +242,7 @@ export class MapPage {
           })
         },
         style: (geoJsonFeature) => {
-          return { opacity: 0 };  //a transparent layer just for registering click events, layer already baked to map in form of a shappefile
+          return { opacity: 0, fillOpacity: 0 };  //a transparent layer just for registering click events, layer already baked to map in form of a shappefile
         }
       });
       geo.setZIndex(this.zIndex.high); // on top of everything, so it can register clicks
@@ -332,7 +329,7 @@ export class MapPage {
       new L.LatLng(17.2788, 104.095), //southWest
       new L.LatLng(17.3027, 104.1204)); //northEast
 
-    this.map = L.map('map', {
+    this.map = L.map(this.mapContainer.nativeElement, {
       attributionControl: true,
       minZoom: this.minZoom,
       maxZoom: this.maxZoom,
@@ -618,7 +615,7 @@ export class MapPage {
 
   test() {
     //load map only after the view did load
-    this.map = L.map("map", { center: new L.LatLng(38.9013, -77.036), zoom: 10 });
+    this.map = L.map('map', { center: new L.LatLng(38.9013, -77.036), zoom: 10 });
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: 'Patrik',
       maxZoom: 18
