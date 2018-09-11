@@ -17,14 +17,14 @@
   "TUTORIAL_SKIP_BUTTON": "Skip",
   "TUTORIAL_CONTINUE_BUTTON": "Continue",
 
-  "TUTORIAL_SLIDE1_TITLE": "Welcome to the Ionic Super Starter",
-  "TUTORIAL_SLIDE1_DESCRIPTION": "The <b>Ionic Super Starter</b> is a fully-featured Ionic starter with many pre-built pages and best practices.",
+  "TUTORIAL_SLIDE1_TITLE": "Welcome to the KU CSC MAP application",
+  "TUTORIAL_SLIDE1_DESCRIPTION": "This application was build based on <b>Ionic Super Starter</b> app - a fully-featured Ionic starter with many pre-built pages and best practices.",
 
-  "TUTORIAL_SLIDE2_TITLE": "How to use the Super Starter",
-  "TUTORIAL_SLIDE2_DESCRIPTION": "Assemble the various page types you want and remove the ones you don't. We've provided many common mobile app page layouts, like login and signup pages, tabs, and this tutorial page.",
+  "TUTORIAL_SLIDE2_TITLE": "What is KU CSC MAP",
+  "TUTORIAL_SLIDE2_DESCRIPTION": "<p>The purpose of this application is to aid university students navigate in and around the university campus, provide them useful information about the surroundings, university and university staff without the need of internet - <b>offline</b></p>",
 
-  "TUTORIAL_SLIDE3_TITLE": "Getting Started",
-  "TUTORIAL_SLIDE3_DESCRIPTION": "Need help? Check out the Super Starter README for a full tutorial",
+  "TUTORIAL_SLIDE3_TITLE": "How to use the KU CSC MAP",
+  "TUTORIAL_SLIDE3_DESCRIPTION": "The 2 most important pages are the <b>Map</b> and <b>Personnel</b> page. <p>The Map pages shows you details about your current position in the campus. You can also see all the major university buildings and display details about them, such as their purpose, picture and floor information. You can use the lightweight navigation feature to track buildings. Searh buildings in the searchbar to quickly locate them.</p><p>On the Personnel page you can find out about teachers and other university staff.</p>",
 
   "TUTORIAL_SLIDE4_TITLE": "Ready to Play?",
 

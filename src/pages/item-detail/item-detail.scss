@@ -11,4 +11,17 @@ page-item-detail {
     background: white;
     position: absolute;
   }
+
+  .fullName {
+    font-size:2.0em;
+  }
+
+  .border-bottom {
+    border-bottom: 2px solid grey;
+  }
+
+  .role {
+    font-size:1.5em;
+    font-style:italic;
+  }
 }

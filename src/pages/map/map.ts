@@ -139,17 +139,33 @@ export class MapPage {
 
   }
 
+  ionViewDidEnter() {
+    console.log("ionViewDidEnter MapPage ");
+    if(this.map){
+     
+    }
+  }
+
   ionViewDidLoad() {
     //good place for initializing first time the view/page loades
     console.log('ionViewDidLoad MapPage');
     console.log('leaflet extended tile layer:', L.TileLayer['MBTiles']);
+   
+   
+    console.log("mapContainer before",this.mapContainer);
+    console.log("map before",this.map);
+    console.log("creating map");
     this.createMap();    //load map only after the view did 
+    console.log("mapContainer after",this.mapContainer);
+    console.log("map after",this.map);
+    
     this.createPositionMarker();
     this.createAccuracyMarker();
 
     this.subscribeToMapTileSource();
 
     this.subscribeToLocationData();
+    this.subscribeToMapTileSource();
 
   }
 

@@ -9,11 +9,16 @@ import { Items } from '../../providers';
   selector: 'page-search',
   templateUrl: 'search.html'
 })
+/**This page is actually the teachers page
+ * 
+ */
 export class SearchPage {
 
   currentItems: any = [];
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, public items: Items) { }
+  constructor(public navCtrl: NavController, public navParams: NavParams, public items: Items) {
+    this.currentItems = this.items.getAll();
+   }
 
   /**
    * Perform a service for the proper items.
@@ -21,11 +26,12 @@ export class SearchPage {
   getItems(ev) {
     let val = ev.target.value;
     if (!val || !val.trim()) {
-      this.currentItems = [];
-      return;
+      this.currentItems = this.items.getAll();
     }
+    //just add more item properties here to filter items based on those properties too
     this.currentItems = this.items.query({
-      name: val
+      fullName: val,
+    //   department: val,
     });
   }
 

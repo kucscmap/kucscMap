@@ -34,18 +34,18 @@ export class MyApp {
 
   //just uncomment the below pages to be able to access them from the menu of the app
   pages: any[] = [
-    { title: 'Tutorial', component: 'TutorialPage' },
-    { title: 'Welcome', component: 'WelcomePage' },
+    { title: 'Tutorial', component: 'TutorialPage', icon: 'book' },
+    //{ title: 'Welcome', component: 'WelcomePage' },
    // { title: 'Tabs', component: 'TabsPage' },
-    { title: 'Cards', component: 'CardsPage' },
-    { title: 'University', component: 'ContentPage' },
-    { title: 'About', component: 'AboutPage' },
-    { title: 'Login', component: 'LoginPage' },
-    { title: 'Signup', component: 'SignupPage' },
-    { title: 'Teachers', component: 'ListMasterPage' },
+    // { title: 'Cards', component: 'CardsPage' },
+    { title: 'About', component: 'AboutPage', icon:'help' },
+    { title: 'University', component: 'ContentPage', icon: 'school' },
+    // { title: 'Login', component: 'LoginPage' },
+    // { title: 'Signup', component: 'SignupPage' },
+    //{ title: 'TeachersList', component: 'ListMasterPage' },
    // { title: 'Menu', component: 'MenuPage' },
    // { title: 'Settings', component: 'SettingsPage', icon: 'options' },
-    { title: 'Search', component: 'SearchPage' },
+    { title: 'Personnel', component: 'SearchPage', icon: 'people' },
     { title: 'Map', component: 'MapPage', icon: 'map' }
   ]
 

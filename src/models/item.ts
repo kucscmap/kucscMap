@@ -9,11 +9,28 @@
  */
 export class Item {
 
+  static readonly defaultItem: any = {
+    "id" : 0,
+    "fullName": "Burt Bear",
+    "faculty": "Nature",
+    "department": "Eating",
+    "role": "Defender",
+    "profilePic": "assets/img/staff/avatar.png",
+    "office": "",
+    "universityEmail": "burt@pidgeon.post",
+    "external":"",
+    "about": ""
+  };
+
   constructor(fields: any) {
     // Quick and dirty extend/assign fields to this model
     for (const f in fields) {
       // @ts-ignore
       this[f] = fields[f];
+    }
+
+    if(!fields['profilePic']){
+      this["profilePic"] = Item.defaultItem.profilePic;
     }
   }
 

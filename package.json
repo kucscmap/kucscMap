@@ -1,7 +1,7 @@
 {
-  "name": "kucscMap",
-  "version": "0.0.1",
-  "author": "Ionic Framework",
+  "name": "KU CSC MAP",
+  "version": "0.5.2",
+  "author": "Patrik Pindes",
   "homepage": "http://ionicframework.com/",
   "private": true,
   "scripts": {
@@ -20,6 +20,7 @@
     "@angular/http": "5.2.11",
     "@angular/platform-browser": "5.2.11",
     "@angular/platform-browser-dynamic": "5.2.11",
+    "@ionic-native/app-version": "^4.12.2",
     "@ionic-native/camera": "4.3.3",
     "@ionic-native/core": "~4.10.0",
     "@ionic-native/device-orientation": "^4.11.0",
@@ -34,6 +35,7 @@
     "@types/leaflet-rotatedmarker": "^0.2.1",
     "com-sarriaroman-photoviewer": "^1.1.18",
     "cordova-android": "7.0.0",
+    "cordova-plugin-app-version": "^0.1.9",
     "cordova-plugin-dbcopy": "git+https://github.com/an-rahulpandey/cordova-plugin-dbcopy.git",
     "cordova-plugin-device": "^2.0.2",
     "cordova-plugin-device-orientation": "^2.0.1",
@@ -71,7 +73,8 @@
         "GEOLOCATION_USAGE_DESCRIPTION": "To locate you"
       },
       "cordova-plugin-statusbar": {},
-      "com-sarriaroman-photoviewer": {}
+      "com-sarriaroman-photoviewer": {},
+      "cordova-plugin-app-version": {}
     },
     "platforms": [
       "android"

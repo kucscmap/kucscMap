@@ -7,12 +7,59 @@
 <ion-header>
 
   <ion-navbar>
-    <ion-title>about</ion-title>
+    <ion-title>About</ion-title>
   </ion-navbar>
 
 </ion-header>
 
 
 <ion-content padding>
-
+  <h1>
+    {{name}}
+  </h1>
+  <p>
+    <b>Kasetsart University Chalermphrakiat Sakon Nakhon Province Campus Map Application</b>
+  </p>
+  <p>
+      <em>Version: {{version}}</em>
+     </p>
+     <ion-note>
+       Application is not yet complete. Some features and content might be missing, bugs might be present. 
+       Please report all the bugs via email.
+     </ion-note>
+    <p>
+     The purpose of this application is to aid university students navigate in and around the university campus,
+      provide them useful information about the surroundings, university and university staff.
+    </p>
+    <p>
+      The application works <b>offline</b> (no internet connection needed).
+    </p>
+    <p>
+        <b>GPS</b> module is required for some of the features and accurate positioning. Turn on and allow 
+        this application to use GPS. Note that enabling GPS (High Accuracy) consumes your battery at increased rate.
+    </p>
+    <h4>Developers</h4>
+    <p>
+      <ion-label text-wrap><b>Project Leader:</b> Patrik Pindes</ion-label>
+      <ion-label text-wrap><b>Project Supervisor:</b> Ajahn Saranya Saetang </ion-label>
+      <ion-label text-wrap><b>Programmer:</b> Patrik Pindes</ion-label>
+      <ion-label text-wrap><b>Designer:</b> Patrik Pindes</ion-label>
+      <ion-label text-wrap><b>Design Prorotype:</b> Fruity and Gott</ion-label>
+      <ion-label text-wrap><b>Buildings Shapefiles:</b> Kraivit  CS</ion-label>
+      <ion-label text-wrap><b>Building photos:</b> Monika Vlckova</ion-label>
+      <ion-label text-wrap><b>Teachers' contacts info:</b> Ajahn Nitaya Muengnak</ion-label>
+    </p>
+    <h4>Contacts</h4>
+    <ion-row>
+        <ion-icon name="mail" before-item> mail: &nbsp;</ion-icon>
+        <a href="mailto:kucsc.map.application@gmail.com?Subject=User%20report" target="_system">
+           kucsc.map.application@gmail.com
+          </a>
+    </ion-row>
+    <ion-row>
+         github: &nbsp;
+        <a href="https://github.com/kucscmap/kucscMap.git" target="_system">
+          github.com/kucscmap/kucscMap.git
+          </a>
+    </ion-row>
 </ion-content>
