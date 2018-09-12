@@ -64,7 +64,10 @@ export class UniversityBuilding {
     }
 
     getHeading() : string{
-        return this.number ? this.number + " | " + this.name : this.name;
+        let displayName = ""
+        displayName += this.number != null ? this.number : "";
+        displayName += this.name != null ?  " | " + this.name : "";
+        return displayName;
       }
 }
 

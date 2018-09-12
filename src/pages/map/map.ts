@@ -278,7 +278,11 @@ export class MapPage {
     let poiProps = this.selectedPoi.feature.properties;
 
     let title = L.DomUtil.create('label');
-    title.innerText = poiProps.number ? poiProps.number + " | " + poiProps.name : poiProps.name;
+
+   let displayName = ""
+   displayName += poiProps.number != null ? poiProps.number : "";
+   displayName += poiProps.name != null ?  " | " + poiProps.name : "";
+   title.innerText = displayName;
 
     let subtitle = L.DomUtil.create('p');
     subtitle.innerText = this.selectedPoi.distance.toString() + " meters";
@@ -615,7 +619,7 @@ export class MapPage {
 
   test() {
     //load map only after the view did load
-    this.map = L.map('map', { center: new L.LatLng(38.9013, -77.036), zoom: 10 });
+    this.map = L.map("map", { center: new L.LatLng(38.9013, -77.036), zoom: 10 });
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: 'Patrik',
       maxZoom: 18
